@@ -1,0 +1,48 @@
+#This is a Build Deploy Pipeline for .NET 6 Web App to Azure App Service using Azure DevOps Pipeline
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildConfiguration: 'Release'
+  dotNetFramework: 'net6.0'
+  dotNetVersion: '6.0.x'
+  targetRuntime: 'linux-x64'
+  azureSPNName: 'YOUR-SPN-NAME'
+  azureAppServiceName: 'YOUR-APP-SERVICE-NAME'
+
+# Build the app for .NET 6 framework
+steps:
+- task: UseDotNet@2
+  inputs:
+    version: $(dotNetVersion)
+    includePreviewVersions: true
+- script: dotnet build --configuration $(buildConfiguration)
+  displayName: 'Build .NET 6 Application'
+
+# Publish it as .NET 6 self contained application for linux runtime
+- task: DotNetCoreCLI@2
+  inputs:
+    command: publish
+    publishWebProjects: True
+    arguments: '--configuration $(BuildConfiguration) --framework $(dotNetFramework) --runtime $(targetRuntime) --self-contained --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: True
+
+# Package the file and uploads them as an artifact of the build
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)' 
+    artifactName: 'MinimalAPI'
+
+#Publish it to the Azure App Service
+- task: AzureWebApp@1
+  inputs:
+    appType: webAppLinux
+    azureSubscription: $(azureSPNName) #this is the name of the SPN
+    appName: $(azureAppServiceName) #App Service's unique name
+    package: $(Build.ArtifactStagingDirectory)/**/*.zip
+
+  
