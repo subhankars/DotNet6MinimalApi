@@ -7,8 +7,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", (Func<string>)(() => "Welcome to .NET 6 Minimal API with C# 10!"));
-app.MapGet("/counter", (Func<int>)(() => {
-    counter++;
-    return counter;
-}));
+app.MapGet("/counter", (Func<int>)(() => ++counter ));
 app.Run();
