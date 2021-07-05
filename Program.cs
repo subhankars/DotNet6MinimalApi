@@ -1,6 +1,7 @@
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 var counter = 0;
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
